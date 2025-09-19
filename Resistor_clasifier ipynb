@@ -1,0 +1,108 @@
+# =========================================================
+# 1. Setup
+# =========================================================
+!pip install tensorflow pillow matplotlib
+
+import os, random
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image, ImageDraw
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# Create folders
+base_dir = "resistor_dataset"
+os.makedirs(base_dir, exist_ok=True)
+classes = ["black","brown","red","orange","yellow","green","blue","violet","grey","white"]
+
+for c in classes:
+    os.makedirs(f"{base_dir}/{c}", exist_ok=True)
+
+# =========================================================
+# 2. Synthetic dataset generator
+# =========================================================
+def create_resistor_image(color, save_path, img_size=(224,224)):
+    img = Image.new("RGB", img_size, "white")
+    draw = ImageDraw.Draw(img)
+
+    # Draw resistor body
+    body_x0, body_y0 = 40, 80
+    body_x1, body_y1 = 180, 140
+    draw.rectangle([body_x0, body_y0, body_x1, body_y1], fill=(200,200,200))
+
+    # Draw color band (one band in middle for now)
+    band_x0 = random.randint(90,110)
+    draw.rectangle([band_x0, 80, band_x0+20, 140], fill=color)
+
+    img.save(save_path)
+
+# Color dictionary
+color_map = {
+    "black": (0,0,0), "brown": (101,67,33), "red": (220,20,60),
+    "orange": (255,140,0), "yellow": (255,215,0), "green": (34,139,34),
+    "blue": (65,105,225), "violet": (148,0,211), "grey": (169,169,169),
+    "white": (255,255,255)
+}
+
+# Generate ~200 images per class
+for c in classes:
+    for i in range(200):
+        create_resistor_image(color_map[c], f"{base_dir}/{c}/{c}_{i}.png")
+
+print("✅ Synthetic dataset created!")
+
+# =========================================================
+# 3. Load dataset
+# =========================================================
+img_size = (224,224)
+batch_size = 32
+
+train_ds = tf.keras.utils.image_dataset_from_directory(
+    base_dir,
+    validation_split=0.2,
+    subset="training",
+    seed=42,
+    image_size=img_size,
+    batch_size=batch_size
+)
+val_ds = tf.keras.utils.image_dataset_from_directory(
+    base_dir,
+    validation_split=0.2,
+    subset="validation",
+    seed=42,
+    image_size=img_size,
+    batch_size=batch_size
+)
+
+# =========================================================
+# 4. Build MobileNetV2 model
+# =========================================================
+base_model = tf.keras.applications.MobileNetV2(input_shape=img_size+(3,),
+                                               include_top=False,
+                                               weights="imagenet")
+base_model.trainable = False  # freeze base layers
+
+model = models.Sequential([
+    base_model,
+    layers.GlobalAveragePooling2D(),
+    layers.Dense(len(classes), activation="softmax")
+])
+
+model.compile(optimizer="adam",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+
+# =========================================================
+# 5. Train
+# =========================================================
+history = model.fit(train_ds, validation_data=val_ds, epochs=5)
+
+# =========================================================
+# 6. Test on a random image
+# =========================================================
+sample_img = random.choice(os.listdir(f"{base_dir}/red"))
+img = Image.open(f"{base_dir}/red/{sample_img}").resize(img_size)
+plt.imshow(img); plt.axis("off")
+x = np.expand_dims(np.array(img)/255.0, axis=0)
+pred = model.predict(x)
+print("Predicted:", classes[np.argmax(pred)])
