@@ -1,0 +1,11 @@
+import tensorflow as tf
+import requests
+import tempfile
+
+@st.cache_resource
+def load_model():
+    url = "https://huggingface.co/your-username/resistor-model/resolve/main/resistor_model.h5"
+    with tempfile.NamedTemporaryFile(suffix=".h5") as tmp:
+        r = requests.get(url)
+        tmp.write(r.content)
+        return tf.keras.models.load_model(tmp.name)
