@@ -1,0 +1,119 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyOm8IjSnJbR3JxSMivkYcwi",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Manju735/Resistor-AI-tool/blob/main/Smart%20forming%20colab\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 2,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "SGh3C0kvbuqc",
+        "outputId": "4f55c057-67b2-440f-e830-c6a9f56f0b6b"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "📡 Sensor Started...\n",
+            "Sensor -> Moisture: 32\n",
+            "Sensor -> Moisture: 22\n",
+            "Sensor -> Moisture: 21\n",
+            "Sensor -> Moisture: 25\n",
+            "Sensor -> Moisture: 32\n",
+            "Sensor -> Moisture: 44\n",
+            "Sensor -> Moisture: 27\n",
+            "Sensor -> Moisture: 35\n",
+            "Sensor -> Moisture: 31\n",
+            "Sensor -> Moisture: 34\n",
+            "\n",
+            "🤖 AI Model Started...\n",
+            "AI Decision ✅ -> Moisture 32: No watering needed\n",
+            "AI Decision 🚰 -> Moisture 22: Water crops NOW\n",
+            "AI Decision 🚰 -> Moisture 21: Water crops NOW\n",
+            "AI Decision 🚰 -> Moisture 25: Water crops NOW\n",
+            "AI Decision ✅ -> Moisture 32: No watering needed\n",
+            "AI Decision ✅ -> Moisture 44: No watering needed\n",
+            "AI Decision 🚰 -> Moisture 27: Water crops NOW\n",
+            "AI Decision ✅ -> Moisture 35: No watering needed\n",
+            "AI Decision ✅ -> Moisture 31: No watering needed\n",
+            "AI Decision ✅ -> Moisture 34: No watering needed\n",
+            "\n",
+            "📱 Farmer App Started (receiving alerts)...\n",
+            "📢 ALERT: Moisture 22 -> Water Needed 🚨\n",
+            "📢 ALERT: Moisture 21 -> Water Needed 🚨\n",
+            "📢 ALERT: Moisture 25 -> Water Needed 🚨\n",
+            "📢 ALERT: Moisture 27 -> Water Needed 🚨\n",
+            "\n",
+            "✅ Total readings: 10\n",
+            "✅ Alerts generated: 4\n"
+          ]
+        }
+      ],
+      "source": [
+        "# -------------------- Step 1: Simulate IoT Sensor --------------------\n",
+        "\n",
+        "import time, random\n",
+        "\n",
+        "# Simulated Redis stream\n",
+        "tsoil_data = []  # will store sensor readings\n",
+        "\n",
+        "print('📡 Sensor Started...')\n",
+        "for i in range(10):\n",
+        "    moisture = random.randint(20, 50)\n",
+        "    tsoil_data.append({\"moisture\": moisture})\n",
+        "    print(f\"Sensor -> Moisture: {moisture}\")\n",
+        "    time.sleep(1)\n",
+        "\n",
+        "# -------------------- Step 2: AI Model --------------------\n",
+        "\n",
+        "print('\\n🤖 AI Model Started...')\n",
+        "alerts = []\n",
+        "for data in tsoil_data:\n",
+        "    moisture = data[\"moisture\"]\n",
+        "    if moisture < 30:\n",
+        "        print(f\"AI Decision 🚰 -> Moisture {moisture}: Water crops NOW\")\n",
+        "        alerts.append(f\"Moisture {moisture} -> Water Needed 🚨\")\n",
+        "    else:\n",
+        "        print(f\"AI Decision ✅ -> Moisture {moisture}: No watering needed\")\n",
+        "\n",
+        "# -------------------- Step 3: Farmer App --------------------\n",
+        "\n",
+        "print('\\n📱 Farmer App Started (receiving alerts)...')\n",
+        "for alert in alerts:\n",
+        "    print(f\"📢 ALERT: {alert}\")\n",
+        "\n",
+        "# -------------------- Step 4: Summary --------------------\n",
+        "\n",
+        "print(f'\\n✅ Total readings: {len(tsoil_data)}')\n",
+        "print(f'✅ Alerts generated: {len(alerts)}')"
+      ]
+    }
+  ]
+}
